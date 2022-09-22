@@ -14,8 +14,8 @@ app.MapGet("/dapr/subscribe", () => {
 });
 
 // Dapr subscription in /dapr/subscribe sets up this route
-app.MapPost("/submissions", (DaprData<Order> requestData) => {
-    Console.WriteLine("Subscriber received : " + requestData.Data.OrderId);
+app.MapPost("/submissions", (DaprData<LoanApplication> requestData) => {
+    Console.WriteLine("Subscriber received : " + requestData.Data.Id);
     return Results.Ok(requestData.Data);
 });
 
@@ -43,8 +43,8 @@ public class LoanApplication
     [property: JsonPropertyName("id")] 
     public string? Id { get; set; }
 
-    [property: JsonPropertyName("applicants")] 
-    public List<Applicant> Applicants { get; set; } = new();
+    // [property: JsonPropertyName("applicants")] 
+    // public List<Applicant> Applicants { get; set; } = new();
 }
 
 public enum LoanApplicationStatus
