@@ -8,70 +8,46 @@ if (app.Environment.IsDevelopment()) {app.UseDeveloperExceptionPage();}
 
 // Register Dapr pub/sub subscriptions
 app.MapGet("/dapr/subscribe", () => {
-    var sub = new DaprSubscription(PubsubName: "applications", Topic: "submissions", Route: "submissions");
+    var sub = new DaprSubscription(PubsubName: "application", Topic: "submissions", Route: "orders");
     Console.WriteLine("Dapr pub/sub is subscribed to: " + sub);
     return Results.Json(new DaprSubscription[]{sub});
 });
 
 // Dapr subscription in /dapr/subscribe sets up this route
-app.MapPost("/submissions", (DaprData<LoanApplication> requestData) => {
-    Console.WriteLine("Subscriber received : " + requestData.Data.Id);
+app.MapPost("/orders", (DaprData<LoanApplication> requestData) => {
+    Console.WriteLine("Subscriber received : " + requestData.Data.ApplicationId);
+    Console.WriteLine("Subscriber received : " + requestData.Data.Applicants[0].FirstName);
     return Results.Ok(requestData.Data);
 });
 
 await app.RunAsync();
 
 public record DaprData<T> ([property: JsonPropertyName("data")] T Data); 
-public record Order([property: JsonPropertyName("orderId")] int OrderId);
+// public record LoanApplication([property: JsonPropertyName("applicationId")] string ApplicationId);
 public record DaprSubscription(
   [property: JsonPropertyName("pubsubname")] string PubsubName, 
   [property: JsonPropertyName("topic")] string Topic, 
   [property: JsonPropertyName("route")] string Route);
 
-public class LoanApplicationSubmittedEvent 
-{
-    public LoanApplicationSubmittedEvent(LoanApplication loanApplication)
-    {
-        LoanApplication = loanApplication;
-    }
-    
-    public LoanApplication LoanApplication { get; }
-}
 
 public class LoanApplication
 {
-    [property: JsonPropertyName("id")] 
-    public string? Id { get; set; }
-
-    // [property: JsonPropertyName("applicants")] 
-    // public List<Applicant> Applicants { get; set; } = new();
-}
-
-public enum LoanApplicationStatus
-{
-    New,
-    Submitted,
-    Approved,
-    Declined,
-    Pending,
-    Underwriting,
-    Abandoned
+    [JsonPropertyName("applicationId")]
+    public string ApplicationId { get; set; }
+    
+    public List<Applicant> Applicants { get; set; } = new();
+    //
+    // public LoanApplicationStatus ApplicationStatus { get; set; }
 }
 
 public class Applicant
 {
-    [property: JsonPropertyName("id")] 
-    public string? Id { get; set; }
-    
-    [property: JsonPropertyName("userId")] 
     public string UserId { get; set; }
     
-    [property: JsonPropertyName("firstName")] 
     public string FirstName { get; set; }
     
-    [property: JsonPropertyName("lastName")] 
     public string LastName { get; set; }
     
-    [property: JsonPropertyName("middleName")] 
     public string? MiddleName { get; set; }
+    
 }
